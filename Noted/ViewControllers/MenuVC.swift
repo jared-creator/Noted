@@ -21,39 +21,6 @@
 //        
 //        return 1
 //    }
-//    
-//    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        
-//        if indexPath.section < folders.count  {
-//            folders[indexPath.section].isOpened.toggle()
-//            tableView.reloadSections([indexPath.section], with: .none)
-//        } else {
-//            tableView.deselectRow(at: indexPath, animated: true)
-//            let note = notes[indexPath.section - folders.count]
-//            delegate?.didSelect(note: note)
-//        }
-//    }
-//    
-//    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-//        guard editingStyle == .delete else { return }
-//        let indexNotes = IndexSet(arrayLiteral: indexPath.section)
-//        let indexFolder = IndexSet(arrayLiteral: indexPath.section)
-//        
-//        if indexPath.section < folders.count {
-//            let folderToRemove = self.folders[indexPath.section]
-//            CoreDataManager.shared.deleteFolder(folder: folderToRemove)
-//            folders.remove(at: indexPath.section)
-//            print(indexFolder)
-//            tableView.deleteSections(indexFolder, with: .left)
-//        } else {
-//            print(notes.count)
-//            let noteToRemove = self.notes[indexPath.section - folders.count]
-//            CoreDataManager.shared.deleteNote(note: noteToRemove)
-//            notes.remove(at: indexPath.section - folders.count)
-//            tableView.deleteSections(indexNotes, with: .left)
-//        }
-//    }
-//}
 
 
 import UIKit
@@ -61,10 +28,13 @@ import UIKit
 protocol MenuViewControllerDelegate: AnyObject {
     func didSelect(note: Notes?)
 }
-class tableSoucre: UITableViewDiffableDataSource<Section, Row> {
+
+class TableSource: UITableViewDiffableDataSource<Section, Row> {
+    
     override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
         return true
     }
+    
     override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         guard let item = itemIdentifier(for: sourceIndexPath), sourceIndexPath != destinationIndexPath else { return }
         var snap = snapshot()
@@ -84,61 +54,51 @@ class tableSoucre: UITableViewDiffableDataSource<Section, Row> {
         
         apply(snap, animatingDifferences: true)
     }
+    
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        guard editingStyle == .delete else { return }
+        guard let dataSource = Shared.instance.tabledatasource else { return }
+        guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
+        
+        var snapshot = dataSource.snapshot()
+        switch item {
+        case .folder(let folder):
+            CoreDataManager.shared.deleteFolder(folder: folder)
+            snapshot.deleteItems([item])
+            apply(snapshot, animatingDifferences: true)
+        case .note(let note):
+            CoreDataManager.shared.deleteNote(note: note)
+            snapshot.deleteItems([item])
+            apply(snapshot, animatingDifferences: true)
+        }
+    }
 }
+
+class Shared {
+    private init(){ }
+    static let instance = Shared()
+    var tabledatasource: TableSource?
+}
+
 class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UITableViewDragDelegate {
-    func tableView(_ tableView: UITableView, performDropWith coordinator: UITableViewDropCoordinator) {
-        
-    }
-    func tableView(_ tableView: UITableView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UITableViewDropProposal {
-        return UITableViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
-        }
-    func tableView(_ tableView: UITableView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
-        guard let item = datasource.itemIdentifier(for: indexPath) else { return [] }
-        
-        switch item {
-        case .folder(let folder):
-            guard let id = folder.id else { return [] }
-            let itemProvider = NSItemProvider(object: id.uuidString as NSString)
-            let dragItem = UIDragItem(itemProvider: itemProvider)
-            dragItem.localObject = folder
-            return [dragItem]
-            
-        case .note(let note):
-            guard let id = note.id else { return [] }
-            let itemProvider = NSItemProvider(object: id.uuidString as NSString)
-            let dragItem = UIDragItem(itemProvider: itemProvider)
-            dragItem.localObject = note
-            return [dragItem]
-        }
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let item = datasource.itemIdentifier(for: indexPath) else { return }
-        
-        switch item {
-        case .folder(let folder):
-            tableView.deselectRow(at: indexPath, animated: true)
-            folder.isOpened.toggle()
-            updateDataSource()
-        case .note(let note):
-            tableView.deselectRow(at: indexPath, animated: true)
-            delegate?.didSelect(note: note)
-        }
-    }
-    
     
     weak var delegate: MenuViewControllerDelegate?
+    
+    static let menuVC = MenuVC()
     
     let newNoteButton = NewNoteButton()
     let newFolderButton = NewFolderButton()
     
-    var notes: [Notes] = []
-    var folders: [Folder] = []
     var notesInFolder: [Notes] = []
     
     let alertVC = NewFolderVC()
     
     private var isDragging = false
+    private var isDeleting = false
     
     private let tableView: UITableView = {
         let table = UITableView()
@@ -147,8 +107,8 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
         return table
     }()
     
-    lazy var datasource: tableSoucre = {
-        let datasouce = tableSoucre(tableView: tableView, cellProvider: { tableView, indexPath, model -> UITableViewCell? in
+    lazy var datasource: TableSource = {
+        let datasouce = TableSource(tableView: tableView, cellProvider: { tableView, indexPath, model -> UITableViewCell? in
             let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
             
             switch model {
@@ -166,6 +126,7 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
                 return cell
             }
         })
+        Shared.instance.tabledatasource = datasouce
         return datasouce
     }()
     
@@ -186,14 +147,20 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
         configureButtonStack()
         configureTableView()
         configureButtonActions()
+        configureEditButton()
+        createDataSource()
         
         tableView.delegate = self
         tableView.dragDelegate = self
         tableView.dropDelegate = self
         tableView.dragInteractionEnabled = true
-        createDataSource()
         tableView.separatorColor = .clear
         view.backgroundColor = .systemBackground
+    }
+    
+    func configureEditButton() {
+        title = "Notes"
+        navigationItem.leftBarButtonItem = editButtonItem
     }
     
     func createDataSource() {
@@ -203,7 +170,6 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
         Folders.getFolders()
         notesRow = Note.notes.map { .note($0)}
         foldersRow = Folders.folders.map { .folder($0)}
-        print(notesRow.count)
         snapshot.appendItems(notesRow, toSection: .notes)
         snapshot.appendItems(foldersRow, toSection: .folders)
         datasource.apply(snapshot, animatingDifferences: true)
@@ -276,6 +242,51 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
         DispatchQueue.main.async {
             self.updateDataSource()
         }
+    }
+    
+    func tableView(_ tableView: UITableView, performDropWith coordinator: UITableViewDropCoordinator) {}
+    
+    func tableView(_ tableView: UITableView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UITableViewDropProposal {
+        return UITableViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
+    }
+    
+    func tableView(_ tableView: UITableView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+        guard let item = datasource.itemIdentifier(for: indexPath) else { return [] }
+        
+        switch item {
+        case .folder(let folder):
+            guard let id = folder.id else { return [] }
+            let itemProvider = NSItemProvider(object: id.uuidString as NSString)
+            let dragItem = UIDragItem(itemProvider: itemProvider)
+            dragItem.localObject = folder
+            return [dragItem]
+            
+        case .note(let note):
+            guard let id = note.id else { return [] }
+            let itemProvider = NSItemProvider(object: id.uuidString as NSString)
+            let dragItem = UIDragItem(itemProvider: itemProvider)
+            dragItem.localObject = note
+            return [dragItem]
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard let item = datasource.itemIdentifier(for: indexPath) else { return }
+        
+        switch item {
+        case .folder(let folder):
+            tableView.deselectRow(at: indexPath, animated: true)
+            folder.isOpened.toggle()
+            updateDataSource()
+        case .note(let note):
+            tableView.deselectRow(at: indexPath, animated: true)
+            delegate?.didSelect(note: note)
+        }
+    }
+    
+    override func setEditing(_ editing: Bool, animated: Bool) {
+        super.setEditing(editing, animated: true)
+        tableView.setEditing(editing, animated: true)
     }
 }
 
