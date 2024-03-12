@@ -69,8 +69,8 @@ class HomeVC: UIViewController {
     
     func grayOutBackgroundView() {
         noteInBackground.toggle()
-        view.backgroundColor = noteInBackground ? .systemGray6 : .systemBackground
-        textView.backgroundColor = noteInBackground ? .systemGray6 : .systemBackground
+        view.backgroundColor = noteInBackground ? .systemGray5 : .systemBackground
+        textView.backgroundColor = noteInBackground ? .systemGray5 : .systemBackground
     }
     
     func configureTextView() {
