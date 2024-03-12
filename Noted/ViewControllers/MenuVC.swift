@@ -46,13 +46,13 @@ class TableSource: UITableViewDiffableDataSource<Section, Row> {
         let isAfter = destinationIndexPath.row > sourceIndexPath.row
         
         switch item {
-        case .folder(let _):
+        case .folder(_):
             if isAfter {
                 snap.insertItems([item], afterItem: destinationItem)
             } else {
                 snap.insertItems([item], beforeItem: destinationItem)
             }
-        case .note(let note):
+        case .note(_):
             if isAfter {
                 snap.insertItems([item], afterItem: destinationItem)
             } else {
@@ -162,7 +162,7 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
     }
     
     func configureEditButton() {
-        title = "Notes"
+        title = "Noted"
         navigationItem.leftBarButtonItem = editButtonItem
     }
     
@@ -296,7 +296,7 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
 extension MenuVC: NewFolderControllerDelegate {
     func comfirmTapped() {
         DispatchQueue.main.async {
-            self.tableView.reloadData()
+            self.updateDataSource()
         }
     }
 }

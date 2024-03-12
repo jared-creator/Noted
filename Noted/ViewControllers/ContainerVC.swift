@@ -23,7 +23,6 @@ class ContainerVC: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .red
         addChildVCs()
-        tap()
     }
 
     private func addChildVCs() {
@@ -72,9 +71,6 @@ extension ContainerVC: HomeViewControllerDelegate {
                 guard let self else { return }
                 if done {
                     self.menuState = .closed
-                    DispatchQueue.main.async {
-                        completion?()
-                    }
                 }
             }
         }
@@ -103,19 +99,5 @@ extension ContainerVC: MenuViewControllerDelegate {
                 self.homeVC.currentNote = note
             }
         }
-    }
-}
-
-extension ContainerVC {
-    
-    @objc func gestureTap() {
-        guard menuState == .opened else { return }
-        didTapMenuButton()
-    }
-    
-    func tap() {
-        let tap = UITapGestureRecognizer(target: self, action: #selector(gestureTap))
-        self.navVC?.view.addGestureRecognizer(tap)
-        view.isUserInteractionEnabled = true
     }
 }
