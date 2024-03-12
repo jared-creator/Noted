@@ -1,24 +1,24 @@
 
-//    
+//
 //    func numberOfSections(in tableView: UITableView) -> Int {
 //        let d = notes.map { $0.folder == nil}.count
 //        let folderCount = folders.count
 //        let totalSections = d + folderCount
 //        return totalSections
 //    }
-//    
+//
 //    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//        
+//
 //        if section < folders.count - 1 {
 //            let folderSection = folders[section]
-//            
+//
 //            if folderSection.isOpened && folderSection.note?.count != 0 {
 //                return notes.count
 //            } else {
 //                return 1
 //            }
 //        }
-//        
+//
 //        return 1
 //    }
 
@@ -37,21 +37,28 @@ class TableSource: UITableViewDiffableDataSource<Section, Row> {
     
     override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         guard let item = itemIdentifier(for: sourceIndexPath), sourceIndexPath != destinationIndexPath else { return }
-        var snap = snapshot()
+        guard let dataSource = Shared.instance.tabledatasource else { return }
+        guard let destinationItem = itemIdentifier(for: destinationIndexPath) else { return }
+        
+        var snap = dataSource.snapshot()
         snap.deleteItems([item])
         
-        if let h = itemIdentifier(for: destinationIndexPath) {
-            let isAfter = destinationIndexPath.row > sourceIndexPath.row
-            
-           if isAfter {
-                snap.insertItems([item], afterItem: h)
-            } else {
-                snap.insertItems([item], beforeItem: h)
-            }
-        } else {
-            snap.appendItems([item], toSection: .notes)
-        }
+        let isAfter = destinationIndexPath.row > sourceIndexPath.row
         
+        switch item {
+        case .folder(let _):
+            if isAfter {
+                snap.insertItems([item], afterItem: destinationItem)
+            } else {
+                snap.insertItems([item], beforeItem: destinationItem)
+            }
+        case .note(let note):
+            if isAfter {
+                snap.insertItems([item], afterItem: destinationItem)
+            } else {
+                snap.insertItems([item], beforeItem: destinationItem)
+            }
+        }
         apply(snap, animatingDifferences: true)
     }
     
@@ -94,11 +101,10 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
     let newFolderButton = NewFolderButton()
     
     var notesInFolder: [Notes] = []
+    var notesRow: [Row] = []
+    var foldersRow: [Row] = []
     
     let alertVC = NewFolderVC()
-    
-    private var isDragging = false
-    private var isDeleting = false
     
     private let tableView: UITableView = {
         let table = UITableView()
@@ -138,9 +144,6 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
         stack.translatesAutoresizingMaskIntoConstraints = false
         return stack
     }()
-    
-    var notesRow: [Row] = []
-    var foldersRow: [Row] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
