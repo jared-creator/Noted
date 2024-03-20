@@ -83,25 +83,22 @@ extension ContainerVC: HomeViewControllerDelegate {
 extension ContainerVC: MenuViewControllerDelegate {
     
     func didSelect(note: Notes?) {
-        toggleMenu { [weak self] in
-            guard let self else { return }
-            guard let note = note else {
-                DispatchQueue.main.async {
-                    self.homeVC.title = "Untitled"
-                    self.homeVC.textView.text = nil
-                    self.homeVC.isFromMenuView = false
-                    self.homeVC.folderButton.set()
-                }
-                return
-            }
-            
+        guard let note = note else {
             DispatchQueue.main.async {
-                self.homeVC.title = note.title
-                self.homeVC.textView.text = note.bodyText
+                self.homeVC.title = "Untitled"
+                self.homeVC.textView.text = nil
+                self.homeVC.isFromMenuView = false
                 self.homeVC.folderButton.set()
-                self.homeVC.isFromMenuView = true
-                self.homeVC.currentNote = note
             }
+            return
         }
+        DispatchQueue.main.async {
+            self.homeVC.title = note.title
+            self.homeVC.textView.text = note.bodyText
+            self.homeVC.folderButton.set()
+            self.homeVC.isFromMenuView = true
+            self.homeVC.currentNote = note
+        }
+        toggleMenu {}
     }
 }
