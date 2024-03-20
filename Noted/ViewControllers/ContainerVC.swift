@@ -95,7 +95,7 @@ extension ContainerVC: MenuViewControllerDelegate {
         DispatchQueue.main.async {
             self.homeVC.title = note.title
             self.homeVC.textView.text = note.bodyText
-            self.homeVC.folderButton.set()
+            self.homeVC.didTapMenuButton()
             self.homeVC.isFromMenuView = true
             self.homeVC.currentNote = note
         }
