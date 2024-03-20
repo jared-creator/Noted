@@ -73,6 +73,7 @@ extension ContainerVC: HomeViewControllerDelegate {
                 if done {
                     self.homeVC.view.isUserInteractionEnabled = true
                     self.menuState = .closed
+                    completion?()
                 }
             }
         }
@@ -93,6 +94,7 @@ extension ContainerVC: MenuViewControllerDelegate {
                 }
                 return
             }
+            
             DispatchQueue.main.async {
                 self.homeVC.title = note.title
                 self.homeVC.textView.text = note.bodyText

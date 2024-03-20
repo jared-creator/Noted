@@ -1,28 +1,4 @@
 
-//
-//    func numberOfSections(in tableView: UITableView) -> Int {
-//        let d = notes.map { $0.folder == nil}.count
-//        let folderCount = folders.count
-//        let totalSections = d + folderCount
-//        return totalSections
-//    }
-//
-//    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//
-//        if section < folders.count - 1 {
-//            let folderSection = folders[section]
-//
-//            if folderSection.isOpened && folderSection.note?.count != 0 {
-//                return notes.count
-//            } else {
-//                return 1
-//            }
-//        }
-//
-//        return 1
-//    }
-
-
 import UIKit
 
 protocol MenuViewControllerDelegate: AnyObject {
