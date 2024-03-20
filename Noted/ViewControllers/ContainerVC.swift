@@ -28,6 +28,7 @@ class ContainerVC: UIViewController {
     private func addChildVCs() {
         let navVC = UINavigationController(rootViewController: homeVC)
         let nav = UINavigationController(rootViewController: menuVC)
+        
         menuVC.delegate = self
         addChild(nav)
         view.addSubview(nav.view)
