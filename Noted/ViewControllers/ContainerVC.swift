@@ -56,11 +56,11 @@ extension ContainerVC: HomeViewControllerDelegate {
         switch menuState {
         case .closed:
             UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: .curveEaseInOut) {
-                
                 self.navVC?.view.frame.origin.x = self.homeVC.view.frame.size.width - 100
             } completion: { [weak self] done in
                 guard let self else { return }
                 if done {
+                    self.homeVC.view.isUserInteractionEnabled = false
                     self.menuState = .opened
                 }
             }
@@ -70,6 +70,7 @@ extension ContainerVC: HomeViewControllerDelegate {
             } completion: { [weak self] done in
                 guard let self else { return }
                 if done {
+                    self.homeVC.view.isUserInteractionEnabled = true
                     self.menuState = .closed
                 }
             }

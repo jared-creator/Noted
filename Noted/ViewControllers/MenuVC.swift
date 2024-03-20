@@ -196,6 +196,13 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
         datasource.apply(snapshot, animatingDifferences: true)
     }
     
+    func updateFolderIcon(item: IndexPath) {
+        var snapshot = datasource.snapshot()
+        guard let item = datasource.itemIdentifier(for: item) else { return }
+        snapshot.reloadItems([item])
+        datasource.apply(snapshot)
+    }
+    
     @objc func newNoteButtonTapped() {
         delegate?.didSelect(note: nil)
     }
@@ -280,7 +287,7 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
         case .folder(let folder):
             tableView.deselectRow(at: indexPath, animated: true)
             folder.isOpened.toggle()
-            updateDataSource()
+            updateFolderIcon(item: indexPath)
         case .note(let note):
             tableView.deselectRow(at: indexPath, animated: true)
             delegate?.didSelect(note: note)
