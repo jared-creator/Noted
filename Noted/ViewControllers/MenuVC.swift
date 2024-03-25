@@ -14,10 +14,9 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
     let newNoteButton = NewNoteButton()
     let newFolderButton = NewFolderButton()
     
-    var notesInFolder: [Notes] = []
     var notesRow: [Row] = []
     var foldersRow: [Row] = []
-    
+    var folder: [Section] = []
     let alertVC = NewFolderVC()
     
     private let tableView: UITableView = {
@@ -49,7 +48,31 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
         Shared.instance.tabledatasource = datasouce
         return datasouce
     }()
-    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let header = Section.allCases[section]
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.size.width, height: 35))
+        let label = UILabel(frame: CGRect(x: 10, y: 5, width: tableView.frame.size.width, height: 25))
+        label.font = UIFont.systemFont(ofSize: 17)
+        let tap = UITapGestureRecognizer(target: self, action: #selector(sectionTapped))
+        tap.numberOfTapsRequired = 1
+        view.addGestureRecognizer(tap)
+        switch header {
+        case .folders:
+            let accessory = UIImageView(frame: CGRect(x: tableView.frame.size.width - 35, y: 10, width: 14, height: 14))
+            accessory.image = UIImage(systemName: "chevron.down")
+            label.text = "Folders"
+            label.textColor = .gray
+            view.addSubviews(label, accessory)
+            return view
+        case .notes:
+            label.text = "Notes"
+            label.textColor = .gray
+            view.addSubview(label)
+            return view
+        }
+        
+        
+    }
     private let buttonStack: UIStackView = {
         let stack = UIStackView()
         stack.axis = .horizontal
@@ -83,6 +106,7 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
     func createDataSource() {
         var snapshot = datasource.snapshot()
         snapshot.appendSections([.folders, .notes])
+        
         Note.getNotes()
         Folders.getFolders()
         notesRow = Note.notes.map { .note($0)}
@@ -123,6 +147,10 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
     
     @objc func newFolderButtonTapped() {
         presentNewFolderAlert()
+    }
+    
+    @objc func sectionTapped() {
+        print("HEllo bnro")
     }
     
     func  presentNewFolderAlert() {

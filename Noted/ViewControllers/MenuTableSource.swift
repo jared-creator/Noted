@@ -9,6 +9,16 @@ import UIKit
 
 class TableSource: UITableViewDiffableDataSource<Section, Row> {
     
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        let header = Section.allCases[section]
+        switch header {
+        case .folders:
+            return  "Folders"
+        case .notes:
+            return "Notes"
+        }
+    }
+    
     override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
         return true
     }
