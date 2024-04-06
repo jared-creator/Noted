@@ -46,7 +46,7 @@ class ContainerVC: UIViewController {
 extension ContainerVC: HomeViewControllerDelegate {
     func didTapSaveButton() {
         let newNote = CoreDataManager.shared.fetchNotes()
-        self.menuVC.updateUI(with: newNote)
+//        self.menuVC.updateUI(with: newNote)
     }
     
     func didTapMenuButton() {

@@ -5,7 +5,7 @@ protocol MenuViewControllerDelegate: AnyObject {
     func didSelect(note: Notes?)
 }
 
-class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UITableViewDragDelegate {
+class MenuVC: UIViewController {
     
     weak var delegate: MenuViewControllerDelegate?
     
@@ -14,65 +14,11 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
     let newNoteButton = NewNoteButton()
     let newFolderButton = NewFolderButton()
     
-    var notesRow: [Row] = []
-    var foldersRow: [Row] = []
-    var folder: [Section] = []
     let alertVC = NewFolderVC()
     
-    private let tableView: UITableView = {
-        let table = UITableView()
-        table.backgroundColor = nil
-        table.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-        return table
-    }()
+    var collectionView: UICollectionView!
+    var dataSource: UICollectionViewDiffableDataSource<Section, Folders>!
     
-    lazy var datasource: TableSource = {
-        let datasouce = TableSource(tableView: tableView, cellProvider: { tableView, indexPath, model -> UITableViewCell? in
-            let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-            
-            switch model {
-            case .folder(let folder):
-                let accessoryImage = UIImageView(frame: CGRect(x: 0, y: 0, width: 14, height: 14))
-                accessoryImage.tintColor = .gray
-                accessoryImage.image = UIImage(systemName: folder.isOpened ? "chevron.down" : "chevron.right")
-                cell.accessoryView = accessoryImage
-                cell.textLabel?.text = folder.name
-                return cell
-                
-            case .note(let note):
-                cell.textLabel?.text = note.title
-                cell.accessoryView = .none
-                return cell
-            }
-        })
-        Shared.instance.tabledatasource = datasouce
-        return datasouce
-    }()
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let header = Section.allCases[section]
-        let view = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.size.width, height: 35))
-        let label = UILabel(frame: CGRect(x: 10, y: 5, width: tableView.frame.size.width, height: 25))
-        label.font = UIFont.systemFont(ofSize: 17)
-        let tap = UITapGestureRecognizer(target: self, action: #selector(sectionTapped))
-        tap.numberOfTapsRequired = 1
-        view.addGestureRecognizer(tap)
-        switch header {
-        case .folders:
-            let accessory = UIImageView(frame: CGRect(x: tableView.frame.size.width - 35, y: 10, width: 14, height: 14))
-            accessory.image = UIImage(systemName: "chevron.down")
-            label.text = "Folders"
-            label.textColor = .gray
-            view.addSubviews(label, accessory)
-            return view
-        case .notes:
-            label.text = "Notes"
-            label.textColor = .gray
-            view.addSubview(label)
-            return view
-        }
-        
-        
-    }
     private let buttonStack: UIStackView = {
         let stack = UIStackView()
         stack.axis = .horizontal
@@ -85,60 +31,18 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
     override func viewDidLoad() {
         super.viewDidLoad()
         configureButtonStack()
-        configureTableView()
         configureButtonActions()
         configureEditButton()
-        createDataSource()
         
-        tableView.delegate = self
-        tableView.dragDelegate = self
-        tableView.dropDelegate = self
-        tableView.dragInteractionEnabled = true
-        tableView.separatorColor = .clear
+        configureCollectionView()
+        configureDataSource()
+        applyInitialSnapshot()
         view.backgroundColor = .systemBackground
     }
     
     func configureEditButton() {
         title = "Noted"
         navigationItem.leftBarButtonItem = editButtonItem
-    }
-    
-    func createDataSource() {
-        var snapshot = datasource.snapshot()
-        snapshot.appendSections([.folders, .notes])
-        
-        Note.getNotes()
-        Folders.getFolders()
-        notesRow = Note.notes.map { .note($0)}
-        foldersRow = Folders.folders.map { .folder($0)}
-        snapshot.appendItems(notesRow, toSection: .notes)
-        snapshot.appendItems(foldersRow, toSection: .folders)
-        datasource.apply(snapshot, animatingDifferences: true)
-    }
-    
-    func updateDataSource() {
-        var snapshot = datasource.snapshot()
-        
-        Note.getLastNote()
-        notesRow = Note.notes.map { .note($0)}
-        guard let lastNote = notesRow.last else { return }
-        let lastNoteEntry: Row = lastNote
-        
-        Folders.getLastFolder()
-        foldersRow = Folders.folders.map { .folder($0)}
-        guard let lastFolder = foldersRow.last else { return }
-        let lastFolderEntry: Row = lastFolder
-        
-        snapshot.appendItems([lastNoteEntry], toSection: .notes)
-        snapshot.appendItems([lastFolderEntry], toSection: .folders)
-        datasource.apply(snapshot, animatingDifferences: true)
-    }
-    
-    func updateFolderIcon(item: IndexPath) {
-        var snapshot = datasource.snapshot()
-        guard let item = datasource.itemIdentifier(for: item) else { return }
-        snapshot.reloadItems([item])
-        datasource.apply(snapshot)
     }
     
     @objc func newNoteButtonTapped() {
@@ -178,23 +82,11 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
         newFolderButton.addTarget(self, action: #selector(newFolderButtonTapped), for: .touchUpInside)
     }
     
-    func configureTableView() {
-        view.addSubview(tableView)
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: buttonStack.bottomAnchor, constant: 30),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -90),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10)
-        ])
-    }
-    
-    func updateUI(with notes: [Notes]) {
-        DispatchQueue.main.async {
-            self.updateDataSource()
-        }
-    }
+//    func updateUI(with notes: [Notes]) {
+//        DispatchQueue.main.async {
+//            self.updateDataSource()
+//        }
+//    }
     
     func tableView(_ tableView: UITableView, performDropWith coordinator: UITableViewDropCoordinator) {}
     
@@ -202,50 +94,142 @@ class MenuVC: UIViewController, UITableViewDelegate, UITableViewDropDelegate, UI
         return UITableViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
     }
     
-    func tableView(_ tableView: UITableView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
-        guard let item = datasource.itemIdentifier(for: indexPath) else { return [] }
-        
-        switch item {
-        case .folder(let folder):
-            guard let id = folder.id else { return [] }
-            let itemProvider = NSItemProvider(object: id.uuidString as NSString)
-            let dragItem = UIDragItem(itemProvider: itemProvider)
-            dragItem.localObject = folder
-            return [dragItem]
-            
-        case .note(let note):
-            guard let id = note.id else { return [] }
-            let itemProvider = NSItemProvider(object: id.uuidString as NSString)
-            let dragItem = UIDragItem(itemProvider: itemProvider)
-            dragItem.localObject = note
-            return [dragItem]
-        }
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let item = datasource.itemIdentifier(for: indexPath) else { return }
-        
-        switch item {
-        case .folder(let folder):
-            tableView.deselectRow(at: indexPath, animated: true)
-            folder.isOpened.toggle()
-            updateFolderIcon(item: indexPath)
-        case .note(let note):
-            tableView.deselectRow(at: indexPath, animated: true)
-            delegate?.didSelect(note: note)
-        }
-    }
-    
-    override func setEditing(_ editing: Bool, animated: Bool) {
-        super.setEditing(editing, animated: true)
-        tableView.setEditing(editing, animated: true)
-    }
+//    func tableView(_ tableView: UITableView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+//        guard let item = datasource.itemIdentifier(for: indexPath) else { return [] }
+//        
+//        switch item {
+//        case .folder(let folder):
+//            guard let id = folder.id else { return [] }
+//            let itemProvider = NSItemProvider(object: id.uuidString as NSString)
+//            let dragItem = UIDragItem(itemProvider: itemProvider)
+//            dragItem.localObject = folder
+//            return [dragItem]
+//            
+//        case .note(let note):
+//            guard let id = note.id else { return [] }
+//            let itemProvider = NSItemProvider(object: id.uuidString as NSString)
+//            let dragItem = UIDragItem(itemProvider: itemProvider)
+//            dragItem.localObject = note
+//            return [dragItem]
+//        }
+//    }
 }
 
 extension MenuVC: NewFolderControllerDelegate {
     func comfirmTapped() {
         DispatchQueue.main.async {
-            self.updateDataSource()
+//            self.updateDataSource()
         }
+    }
+}
+
+extension MenuVC {
+    
+    func configureCollectionView() {
+        collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: createLayout())
+//        collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        collectionView.backgroundColor = .purple
+        collectionView.delegate = self
+        view.addSubview(collectionView)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            collectionView.topAnchor.constraint(equalTo: buttonStack.bottomAnchor, constant: 30),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -90),
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10)
+        ])
+    }
+    
+    func createLayout() -> UICollectionViewLayout {
+        
+        let sectionProvider = { (sectionIndex: Int, layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection? in
+                        
+            let section: NSCollectionLayoutSection
+            
+                section = NSCollectionLayoutSection.list(using: .init(appearance: .sidebar), layoutEnvironment: layoutEnvironment)
+                section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 0, trailing: 10)
+            
+            return section
+        }
+        return UICollectionViewCompositionalLayout(sectionProvider: sectionProvider)
+    }
+    
+    func collectionViewLayout() -> UICollectionViewLayout {
+        let sectionProvider = { (sectionIndex: Int, layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection? in
+            let section: NSCollectionLayoutSection
+            section = NSCollectionLayoutSection.list(using: .init(appearance: .plain), layoutEnvironment: layoutEnvironment)
+        section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 0, trailing: 10)
+            return section
+        }
+        return UICollectionViewCompositionalLayout(sectionProvider: sectionProvider)
+    }
+    
+    func createOutlineHeaderCellRegistration() -> UICollectionView.CellRegistration<UICollectionViewListCell, String> {
+        return UICollectionView.CellRegistration<UICollectionViewListCell, String> { (cell, indexPath, title) in
+            var content = cell.defaultContentConfiguration()
+            content.text = title
+            cell.contentConfiguration = content
+            cell.accessories = [.outlineDisclosure(options: .init(style: .header))]
+        }
+    }
+    
+    func createOutlineCellRegistration() -> UICollectionView.CellRegistration<UICollectionViewListCell, String> {
+        return UICollectionView.CellRegistration<UICollectionViewListCell, String> { (cell, indexPath, note) in
+            var content = cell.defaultContentConfiguration()
+            content.text = note
+            cell.contentConfiguration = content
+            cell.accessories = [.disclosureIndicator()]
+        }
+    }
+    
+    func configureDataSource() {
+        let outlineHeaderCellRegistration = createOutlineHeaderCellRegistration()
+        let outlineCellRegistration = createOutlineCellRegistration()
+        
+        dataSource = UICollectionViewDiffableDataSource<Section, Folders>(collectionView: collectionView) { (collectionView, indexPath, item) -> UICollectionViewCell? in
+            let section = Section.outline
+            switch section {
+            case .outline:
+                if item.hasChildren {
+                    return collectionView.dequeueConfiguredReusableCell(using: outlineHeaderCellRegistration, for: indexPath, item: item.name!)
+                } else {
+                    return collectionView.dequeueConfiguredReusableCell(using: outlineCellRegistration, for: indexPath, item: item.note?.title)
+                }
+            }
+
+        }
+    }
+    
+    func applyInitialSnapshot() {
+        let section = Section.outline
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Folders>()
+        snapshot.appendSections([section])
+        dataSource.apply(snapshot)
+        
+        var outlineSnapshot = NSDiffableDataSourceSectionSnapshot<Folders>()
+        Foldersd.getFolders()
+        let fetchedFolders = Foldersd.folders
+        
+        for folder in fetchedFolders {
+            if folder.note!.count == 0 {
+                let rootItem = Folders(name: folder.name, hasChildren: true)
+                outlineSnapshot.append([rootItem])
+            } else {
+                let rootItem = Folders(name: folder.name, hasChildren: true)
+                outlineSnapshot.append([rootItem])
+                let outlineItems = Note.notes.map { Folders(note: $0)}
+                outlineSnapshot.append(outlineItems, to: rootItem)
+            }
+        }
+        dataSource.apply(outlineSnapshot, to: .outline, animatingDifferences: false)
+    }
+}
+
+extension MenuVC: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
+        collectionView.deselectItem(at: indexPath, animated: true)
+        delegate?.didSelect(note: item.note)
     }
 }

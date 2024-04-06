@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Note: Codable, Hashable {
+struct Notesd: Codable, Hashable {
     var id = UUID()
     var bodyText: String
     var title: String
@@ -28,7 +28,7 @@ struct Note: Codable, Hashable {
     }
 }
 
-struct Folders: Hashable {
+struct Foldersd: Hashable {
     var id = UUID()
     var isOpened: Bool
     var name: String
@@ -49,12 +49,48 @@ struct Folders: Hashable {
     }
 }
 
-enum Row: Hashable {
-    case note(Notes)
-    case folder(Folder)
+//enum Item: Hashable {
+//    case note(Notes)
+//    case folder(Folder)
+//}
+
+struct Note: Hashable {
+    
+    let bodyText: String
+    let title: String
+    let Folder: Folders
+    private let identifier = UUID()
+    
+    static var notes: [Notes] {
+        let folder = CoreDataManager.shared.fetchFolders()
+        var currentNotes: [Notes] = []
+        
+        for i in 0..<folder.count {
+            if folder[i].note?.count != 0 {
+                let noteObject = folder[i].note?.allObjects as? [Notes]
+                let currentFolder = Folders(note: nil, name: folder[i].name, hasChildren: true)
+                currentNotes = noteObject!
+            } 
+        }
+        return currentNotes
+    }
 }
 
-enum Section: String, CaseIterable {
-    case folders
-    case notes
+
+
+struct Folders: Hashable {
+    let name: String?
+    let note: Notes?
+    let hasChildren: Bool
+    
+    init(note: Notes? = nil, name: String? = nil, hasChildren: Bool = false) {
+        self.note = note
+        self.name = name
+        self.hasChildren = hasChildren
+    }
+    private let identifier = UUID()
+}
+
+enum Section: Hashable {
+    case outline
 }

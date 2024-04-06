@@ -74,4 +74,14 @@ extension CoreDataManager {
         context.delete(note)
         save()
     }
+    
+    func add(_ note: Notes, to folder: Folder) {
+        folder.addToNote(note)
+        save()
+    }
+    
+    func remove(_ note: Notes, from folder: Folder) {
+        folder.removeFromNote(note)
+        save()
+    }
 }

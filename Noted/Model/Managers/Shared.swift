@@ -7,8 +7,8 @@
 
 import Foundation
 
-class Shared {
-    private init(){}
-    static let instance = Shared()
-    var tabledatasource: TableSource?
-}
+//class Shared {
+//    private init(){}
+//    static let instance = Shared()
+//    var tabledatasource: TableSource?
+//}
