@@ -53,10 +53,6 @@ class MenuVC: UIViewController {
         presentNewFolderAlert()
     }
     
-    @objc func sectionTapped() {
-        print("HEllo bnro")
-    }
-    
     func  presentNewFolderAlert() {
         alertVC.modalPresentationStyle = .overFullScreen
         alertVC.modalTransitionStyle = .crossDissolve
@@ -81,12 +77,6 @@ class MenuVC: UIViewController {
         newNoteButton.addTarget(self, action: #selector(newNoteButtonTapped), for: .touchUpInside)
         newFolderButton.addTarget(self, action: #selector(newFolderButtonTapped), for: .touchUpInside)
     }
-    
-//    func updateUI(with notes: [Notes]) {
-//        DispatchQueue.main.async {
-//            self.updateDataSource()
-//        }
-//    }
     
     func tableView(_ tableView: UITableView, performDropWith coordinator: UITableViewDropCoordinator) {}
     
@@ -118,7 +108,7 @@ class MenuVC: UIViewController {
 extension MenuVC: NewFolderControllerDelegate {
     func comfirmTapped() {
         DispatchQueue.main.async {
-//            self.updateDataSource()
+            self.updateFolders()
         }
     }
 }
@@ -127,7 +117,6 @@ extension MenuVC {
     
     func configureCollectionView() {
         collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: createLayout())
-//        collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         collectionView.backgroundColor = .purple
         collectionView.delegate = self
         view.addSubview(collectionView)
@@ -179,7 +168,6 @@ extension MenuVC {
             var content = cell.defaultContentConfiguration()
             content.text = note
             cell.contentConfiguration = content
-            cell.accessories = [.disclosureIndicator()]
         }
     }
     
@@ -200,6 +188,22 @@ extension MenuVC {
 
         }
     }
+
+    func updateFolders() {
+        var snapshot = dataSource.snapshot()
+        let fetchNewFolder = CoreDataManager.shared.fetchFolders().last
+        let newFolder = Folders(name: fetchNewFolder?.name, hasChildren: true)
+        snapshot.appendItems([newFolder])
+        dataSource.apply(snapshot, animatingDifferences: true)
+    }
+    
+    func updateNotes() {
+        var snapshot = dataSource.snapshot()
+        let fetchedNewNote = CoreDataManager.shared.fetchNotes().last
+        let newNote = Folders(note: fetchedNewNote)
+        snapshot.appendItems([newNote])
+        dataSource.apply(snapshot, animatingDifferences: true)
+    }
     
     func applyInitialSnapshot() {
         let section = Section.outline
@@ -208,8 +212,9 @@ extension MenuVC {
         dataSource.apply(snapshot)
         
         var outlineSnapshot = NSDiffableDataSourceSectionSnapshot<Folders>()
-        Foldersd.getFolders()
-        let fetchedFolders = Foldersd.folders
+        var out = NSDiffableDataSourceSectionSnapshot<Note>()
+        let fetchedFolders = CoreDataManager.shared.fetchFolders()
+        let fetchedNotes = CoreDataManager.shared.fetchNotes()
         
         for folder in fetchedFolders {
             if folder.note!.count == 0 {
@@ -223,6 +228,14 @@ extension MenuVC {
             }
         }
         dataSource.apply(outlineSnapshot, to: .outline, animatingDifferences: false)
+        
+        for note in fetchedNotes {
+            if note.folder == nil {
+                let notes = Folders(note: note)
+                outlineSnapshot.append([notes])
+            }
+        }
+        dataSource.apply(outlineSnapshot, to: .outline)
     }
 }
 
@@ -233,3 +246,51 @@ extension MenuVC: UICollectionViewDelegate {
         delegate?.didSelect(note: item.note)
     }
 }
+//    override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+//        guard let item = itemIdentifier(for: sourceIndexPath), sourceIndexPath != destinationIndexPath else { return }
+//        guard let dataSource = Shared.instance.tabledatasource else { return }
+//        guard let destinationItem = itemIdentifier(for: destinationIndexPath) else { return }
+//
+//        var snap = dataSource.snapshot()
+//        snap.deleteItems([item])
+//
+//        let isAfter = destinationIndexPath.row > sourceIndexPath.row
+//
+//        switch item {
+//        case .folder(_):
+//            if isAfter {
+//                snap.insertItems([item], afterItem: destinationItem)
+//            } else {
+//                snap.insertItems([item], beforeItem: destinationItem)
+//            }
+//        case .note(_):
+//            if isAfter {
+//                snap.insertItems([item], afterItem: destinationItem)
+//            } else {
+//                snap.insertItems([item], beforeItem: destinationItem)
+//            }
+//        }
+//        apply(snap, animatingDifferences: true)
+//    }
+//
+//    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+//        return true
+//    }
+//
+//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+//        guard editingStyle == .delete else { return }
+//        guard let dataSource = Shared.instance.tabledatasource else { return }
+//        guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
+//
+//        var snapshot = dataSource.snapshot()
+//        switch item {
+//        case .folder(let folder):
+//            CoreDataManager.shared.deleteFolder(folder: folder)
+//            snapshot.deleteItems([item])
+//            apply(snapshot, animatingDifferences: true)
+//        case .note(let note):
+//            CoreDataManager.shared.deleteNote(note: note)
+//            snapshot.deleteItems([item])
+//            apply(snapshot, animatingDifferences: true)
+//        }
+//    }

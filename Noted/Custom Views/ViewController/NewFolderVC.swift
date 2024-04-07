@@ -82,7 +82,6 @@ class NewFolderVC: UIViewController {
     }
 
     @objc func addFolder() {
-        
         if folderName.text?.count == 0 {
             shakeAnimation()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {

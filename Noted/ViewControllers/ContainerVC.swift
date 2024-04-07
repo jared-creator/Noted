@@ -45,8 +45,7 @@ class ContainerVC: UIViewController {
 
 extension ContainerVC: HomeViewControllerDelegate {
     func didTapSaveButton() {
-        let newNote = CoreDataManager.shared.fetchNotes()
-//        self.menuVC.updateUI(with: newNote)
+        self.menuVC.updateNotes()
     }
     
     func didTapMenuButton() {
@@ -89,6 +88,7 @@ extension ContainerVC: MenuViewControllerDelegate {
                 self.homeVC.textView.text = nil
                 self.homeVC.isFromMenuView = false
                 self.homeVC.folderButton.set()
+                self.toggleMenu {}
             }
             return
         }
@@ -98,7 +98,7 @@ extension ContainerVC: MenuViewControllerDelegate {
             self.homeVC.didTapMenuButton()
             self.homeVC.isFromMenuView = true
             self.homeVC.currentNote = note
+            self.toggleMenu {}
         }
-        toggleMenu {}
     }
 }

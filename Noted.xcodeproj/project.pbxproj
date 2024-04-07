@@ -15,7 +15,6 @@
 		9B65ABB32B6B1AF600946299 /* SaveNoteButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B65ABB22B6B1AF600946299 /* SaveNoteButton.swift */; };
 		9B66A4862B644CBA0059A49E /* NoteAndFolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B66A4852B644CBA0059A49E /* NoteAndFolder.swift */; };
 		9B7E3F252BAA760600846393 /* Shared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7E3F242BAA760600846393 /* Shared.swift */; };
-		9B7E3F272BAA773000846393 /* MenuTableSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7E3F262BAA773000846393 /* MenuTableSource.swift */; };
 		9B8CCC462B7C14C600A50AED /* ContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8CCC452B7C14C600A50AED /* ContainerView.swift */; };
 		9B8CCC482B7C152400A50AED /* NewFolderVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8CCC472B7C152400A50AED /* NewFolderVC.swift */; };
 		9B8CCC4A2B7C188600A50AED /* CreateFolderButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8CCC492B7C188600A50AED /* CreateFolderButton.swift */; };
@@ -49,7 +48,6 @@
 		9B65ABB22B6B1AF600946299 /* SaveNoteButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveNoteButton.swift; sourceTree = "<group>"; };
 		9B66A4852B644CBA0059A49E /* NoteAndFolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteAndFolder.swift; sourceTree = "<group>"; };
 		9B7E3F242BAA760600846393 /* Shared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared.swift; sourceTree = "<group>"; };
-		9B7E3F262BAA773000846393 /* MenuTableSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuTableSource.swift; sourceTree = "<group>"; };
 		9B8CCC452B7C14C600A50AED /* ContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerView.swift; sourceTree = "<group>"; };
 		9B8CCC472B7C152400A50AED /* NewFolderVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewFolderVC.swift; sourceTree = "<group>"; };
 		9B8CCC492B7C188600A50AED /* CreateFolderButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateFolderButton.swift; sourceTree = "<group>"; };
@@ -108,7 +106,6 @@
 				9B94AF772B62F859009195BF /* ContainerVC.swift */,
 				9B94AF792B62F8E6009195BF /* MenuVC.swift */,
 				9B94AF7B2B62F8EF009195BF /* HomeVC.swift */,
-				9B7E3F262BAA773000846393 /* MenuTableSource.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -321,7 +318,6 @@
 				9B66A4862B644CBA0059A49E /* NoteAndFolder.swift in Sources */,
 				9B65ABB12B6B12A700946299 /* CoreDataManager.swift in Sources */,
 				9BCE79BF2B5F28D9003CC2CC /* ShowFolderButton.swift in Sources */,
-				9B7E3F272BAA773000846393 /* MenuTableSource.swift in Sources */,
 				9B94AF7A2B62F8E6009195BF /* MenuVC.swift in Sources */,
 				9BCE79A52B5F20CA003CC2CC /* SceneDelegate.swift in Sources */,
 				9B8CCC482B7C152400A50AED /* NewFolderVC.swift in Sources */,
