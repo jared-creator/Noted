@@ -17,7 +17,7 @@ class MenuVC: UIViewController {
     let alertVC = NewFolderVC()
     
     var collectionView: UICollectionView!
-    var dataSource: UICollectionViewDiffableDataSource<Section, Folders>!
+    var dataSource: DataSource!
     
     private let buttonStack: UIStackView = {
         let stack = UIStackView()
@@ -43,6 +43,11 @@ class MenuVC: UIViewController {
     func configureEditButton() {
         title = "Noted"
         navigationItem.leftBarButtonItem = editButtonItem
+    }
+    
+    override func setEditing(_ editing: Bool, animated: Bool) {
+        super.setEditing(editing, animated: animated)
+        collectionView.isEditing = editing
     }
     
     @objc func newNoteButtonTapped() {
@@ -130,6 +135,24 @@ extension MenuVC {
         ])
     }
     
+//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+//        guard editingStyle == .delete else { return }
+//        guard let dataSource = Shared.instance.tabledatasource else { return }
+//        guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
+//
+//        var snapshot = dataSource.snapshot()
+//        switch item {
+//        case .folder(let folder):
+//            CoreDataManager.shared.deleteFolder(folder: folder)
+//            snapshot.deleteItems([item])
+//            apply(snapshot, animatingDifferences: true)
+//        case .note(let note):
+//            CoreDataManager.shared.deleteNote(note: note)
+//            snapshot.deleteItems([item])
+//            apply(snapshot, animatingDifferences: true)
+//        }
+//    }
+    
     func createLayout() -> UICollectionViewLayout {
         
         let sectionProvider = { (sectionIndex: Int, layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection? in
@@ -168,14 +191,40 @@ extension MenuVC {
             var content = cell.defaultContentConfiguration()
             content.text = note
             cell.contentConfiguration = content
+            
+            var accessories: [UICellAccessory] = [
+                .reorder(displayed: .whenEditing)
+            ]
+            cell.accessories = accessories
         }
     }
+//    // Allow every item to be reordered
+//    dataSource.reorderingHandlers.canReorderItem = { item in return true }
+//
+//
+//    // Option 1: Update the backing store from a CollectionDifference
+//    dataSource.reorderingHandlers.didReorder = { [weak self] transaction in
+//        guard let self = self else { return }
+//        
+//        if let updatedBackingStore = self.backingStore.applying(transaction.difference) {
+//            self.backingStore = updatedBackingStore
+//        }
+//    }
+//
+//
+//    // Option 2: Update the backing store from the final item identifiers
+//    dataSource.reorderingHandlers.didReorder = { [weak self] transaction in
+//        guard let self = self else { return }
+//        
+//        self.backingStore = transaction.finalSnapshot.itemIdentifiers
+//    }
+    
     
     func configureDataSource() {
         let outlineHeaderCellRegistration = createOutlineHeaderCellRegistration()
         let outlineCellRegistration = createOutlineCellRegistration()
         
-        dataSource = UICollectionViewDiffableDataSource<Section, Folders>(collectionView: collectionView) { (collectionView, indexPath, item) -> UICollectionViewCell? in
+        dataSource = DataSource(collectionView: collectionView) { (collectionView, indexPath, item) -> UICollectionViewCell? in
             let section = Section.outline
             switch section {
             case .outline:
@@ -185,10 +234,10 @@ extension MenuVC {
                     return collectionView.dequeueConfiguredReusableCell(using: outlineCellRegistration, for: indexPath, item: item.note?.title)
                 }
             }
-
+            
         }
     }
-
+    
     func updateFolders() {
         var snapshot = dataSource.snapshot()
         let fetchNewFolder = CoreDataManager.shared.fetchFolders().last
@@ -212,7 +261,6 @@ extension MenuVC {
         dataSource.apply(snapshot)
         
         var outlineSnapshot = NSDiffableDataSourceSectionSnapshot<Folders>()
-        var out = NSDiffableDataSourceSectionSnapshot<Note>()
         let fetchedFolders = CoreDataManager.shared.fetchFolders()
         let fetchedNotes = CoreDataManager.shared.fetchNotes()
         
@@ -245,52 +293,5 @@ extension MenuVC: UICollectionViewDelegate {
         collectionView.deselectItem(at: indexPath, animated: true)
         delegate?.didSelect(note: item.note)
     }
+    
 }
-//    override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-//        guard let item = itemIdentifier(for: sourceIndexPath), sourceIndexPath != destinationIndexPath else { return }
-//        guard let dataSource = Shared.instance.tabledatasource else { return }
-//        guard let destinationItem = itemIdentifier(for: destinationIndexPath) else { return }
-//
-//        var snap = dataSource.snapshot()
-//        snap.deleteItems([item])
-//
-//        let isAfter = destinationIndexPath.row > sourceIndexPath.row
-//
-//        switch item {
-//        case .folder(_):
-//            if isAfter {
-//                snap.insertItems([item], afterItem: destinationItem)
-//            } else {
-//                snap.insertItems([item], beforeItem: destinationItem)
-//            }
-//        case .note(_):
-//            if isAfter {
-//                snap.insertItems([item], afterItem: destinationItem)
-//            } else {
-//                snap.insertItems([item], beforeItem: destinationItem)
-//            }
-//        }
-//        apply(snap, animatingDifferences: true)
-//    }
-//
-//    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-//        return true
-//    }
-//
-//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-//        guard editingStyle == .delete else { return }
-//        guard let dataSource = Shared.instance.tabledatasource else { return }
-//        guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
-//
-//        var snapshot = dataSource.snapshot()
-//        switch item {
-//        case .folder(let folder):
-//            CoreDataManager.shared.deleteFolder(folder: folder)
-//            snapshot.deleteItems([item])
-//            apply(snapshot, animatingDifferences: true)
-//        case .note(let note):
-//            CoreDataManager.shared.deleteNote(note: note)
-//            snapshot.deleteItems([item])
-//            apply(snapshot, animatingDifferences: true)
-//        }
-//    }

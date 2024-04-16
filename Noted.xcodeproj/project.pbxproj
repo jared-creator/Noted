@@ -14,6 +14,7 @@
 		9B65ABB12B6B12A700946299 /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B65ABB02B6B12A700946299 /* CoreDataManager.swift */; };
 		9B65ABB32B6B1AF600946299 /* SaveNoteButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B65ABB22B6B1AF600946299 /* SaveNoteButton.swift */; };
 		9B66A4862B644CBA0059A49E /* NoteAndFolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B66A4852B644CBA0059A49E /* NoteAndFolder.swift */; };
+		9B7C61562BCDFFB60048CCD0 /* DataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C61552BCDFFB60048CCD0 /* DataSource.swift */; };
 		9B7E3F252BAA760600846393 /* Shared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7E3F242BAA760600846393 /* Shared.swift */; };
 		9B8CCC462B7C14C600A50AED /* ContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8CCC452B7C14C600A50AED /* ContainerView.swift */; };
 		9B8CCC482B7C152400A50AED /* NewFolderVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8CCC472B7C152400A50AED /* NewFolderVC.swift */; };
@@ -47,6 +48,7 @@
 		9B65ABB02B6B12A700946299 /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
 		9B65ABB22B6B1AF600946299 /* SaveNoteButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveNoteButton.swift; sourceTree = "<group>"; };
 		9B66A4852B644CBA0059A49E /* NoteAndFolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteAndFolder.swift; sourceTree = "<group>"; };
+		9B7C61552BCDFFB60048CCD0 /* DataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataSource.swift; sourceTree = "<group>"; };
 		9B7E3F242BAA760600846393 /* Shared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared.swift; sourceTree = "<group>"; };
 		9B8CCC452B7C14C600A50AED /* ContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerView.swift; sourceTree = "<group>"; };
 		9B8CCC472B7C152400A50AED /* NewFolderVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewFolderVC.swift; sourceTree = "<group>"; };
@@ -204,6 +206,7 @@
 			children = (
 				9BCE79C32B5F29E8003CC2CC /* UIView+Ext.swift */,
 				9B4FB7272B89700F00459263 /* UITextField+Ext.swift */,
+				9B7C61552BCDFFB60048CCD0 /* DataSource.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -314,6 +317,7 @@
 				9BCE79A32B5F20CA003CC2CC /* AppDelegate.swift in Sources */,
 				9B8CCC4A2B7C188600A50AED /* CreateFolderButton.swift in Sources */,
 				9B8CCC462B7C14C600A50AED /* ContainerView.swift in Sources */,
+				9B7C61562BCDFFB60048CCD0 /* DataSource.swift in Sources */,
 				9B7E3F252BAA760600846393 /* Shared.swift in Sources */,
 				9B66A4862B644CBA0059A49E /* NoteAndFolder.swift in Sources */,
 				9B65ABB12B6B12A700946299 /* CoreDataManager.swift in Sources */,
